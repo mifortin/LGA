@@ -1,0 +1,30 @@
+LGA
+
+A geometric algebra library designed for C++14.
+
+To use, first include the appropriate headers:
+#include "LMultivector_Literals.h"
+#include "LMultivector_Ostream.h"
+#include "LMultivector.h"
+
+There are three types:
+- LGA - a wrapper around a float with an annotation for the basis.
+- LBasis - basic types, named e1...e9.  Combine them with e1^e2...
+- LTuple - many LGA objects stored in an array (summations)
+
+To see what is within a tuple or LGA, use LMultivector_Ostream.h and cout the results.
+
+LMultivector_Literals.h provides convenience methods to work with multivectors.
+
+Creating a multivector:
+auto myVector = 2.3_e1_e2 + 4.5_e3 + 6_e1_e2_e3;
+
+The geometric products works on combinations of LGA and LBasis:
+auto myProduct = myVector | 1.0_e4
+
+The inner product (*) and outer product (^) work similarly.
+
+All manipulations with the basis (e1...e9) are done at compile time.
+
+Enjoy!
+

@@ -8,6 +8,9 @@
 	
  Support for the standard ostream << operator.  It was getting cluttered in
  LMultivector.h
+ 
+ Including this file allows the use of cout and other C++ output operators
+ to emit rudimentary debug information.
 */
 
 
@@ -45,7 +48,7 @@ struct GAOStreamUtil
 	template<GABasis BASIS, class TYPE>
 	void action(GA<BASIS, TYPE> &o)
 	{
-		if (o() == 0)
+		if (std::abs(o()) <= 0.00001)
 			return;
 		
 		if (o() < 0)
@@ -64,9 +67,9 @@ private:
 };
 
 
-//! Output for a tuple (for debugging!)
+//! Output for a tuple (for debugging as there is an implicit copy!)
 template<GABasis BASIS, class TYPE>
-std::ostream& operator<<(std::ostream &o, GATuple<BASIS, TYPE> &t)
+std::ostream& operator<<(std::ostream &o, GATuple<BASIS, TYPE> t)
 {
 	GAOStreamUtil osu(o);
 	GAMetaHelper<BASIS, BASIS, GAOStreamUtil, TYPE> gmh(t, osu);

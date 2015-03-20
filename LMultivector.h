@@ -6,7 +6,17 @@
 /*!	\file	LMultivector.h		Multivector routing
 	
 	This file has the routines used to make multi-vectors a reality.  We
-	provide templates to perform the various products.
+	provide templates to perform the various products on the basis.
+ 
+	@code
+		// Define an oriented plane with area of 10.
+		GA<e1^e2> xy = 10;
+	@endcode
+ 
+	The operators are as follows:  Pipe (|) for the geometric product,
+	asterisk (*) for the inner product, and carot (^) for the outer product.
+ 
+	@warning	We use features from C++14, and have only tested on Clang.
  */
 
 
@@ -32,6 +42,33 @@ enum GABasis
 	e7		= 0x040,
 	e8		= 0x080,
 	e9		= 0x100,
+};
+
+
+//! An operation that does the geometric product.
+struct GA_GeometricProduct
+{
+	template<class X, class Y, class Z>
+	constexpr static void action(X &o, Y &lhs, Z &rhs)
+	{ o += (lhs | rhs); }
+};
+
+
+//! An operation that does the inner product.
+struct GA_InnerProduct
+{
+	template<class X, class Y, class Z>
+	constexpr static void action(X &o, Y &lhs, Z &rhs)
+	{ o += (lhs * rhs); }
+};
+
+
+//! An operation that does the outer product.
+struct GA_OuterProduct
+{
+	template<class X, class Y, class Z>
+	constexpr static void action(X &o, Y &lhs, Z &rhs)
+	{ o += (lhs ^ rhs); }
 };
 
 
@@ -367,7 +404,7 @@ constexpr GATuple<M1,T>& operator+=(GATuple<M1,T>& src, GATuple<M2,T> r)
 
 
 //! Utility to post-multiply by a GA...
-template<class T, GABasis MV, GABasis M2>
+template<class T, GABasis MV, GABasis M2, class OP>
 struct GAPostMultiplyUtil
 {
 	GAPostMultiplyUtil(GATuple<MV, T> &in_d, GA<M2, T> &rhs)
@@ -378,7 +415,7 @@ struct GAPostMultiplyUtil
 	template<GABasis X, class Y>
 	void action(GA<X, Y> &o)
 	{
-		_dest += (o | _rhs);
+		OP::action(_dest, o, _rhs);
 	}
 	
 private:
@@ -392,15 +429,35 @@ template<class T, GABasis M1, GABasis M2>
 constexpr GATuple<M1|M2, T> operator|( GATuple<M1, T> l, GA<M2, T> r)
 {
 	GATuple<M1|M2, T> toRet;
-	GAPostMultiplyUtil<T, M1|M2, M2> pmu(toRet, r);
-	GAMetaHelper<M1, M1, GAPostMultiplyUtil<T, M1|M2, M2>, T> gmh(l, pmu);
+	GAPostMultiplyUtil<T, M1|M2, M2, GA_GeometricProduct> pmu(toRet, r);
+	GAMetaHelper<M1, M1, GAPostMultiplyUtil<T, M1|M2, M2, GA_GeometricProduct>, T> gmh(l, pmu);
+	
+	return toRet;
+}
+
+template<class T, GABasis M1, GABasis M2>
+constexpr GATuple<M1|M2, T> operator^( GATuple<M1, T> l, GA<M2, T> r)
+{
+	GATuple<M1|M2, T> toRet;
+	GAPostMultiplyUtil<T, M1|M2, M2, GA_OuterProduct> pmu(toRet, r);
+	GAMetaHelper<M1, M1, GAPostMultiplyUtil<T, M1|M2, M2, GA_OuterProduct>, T> gmh(l, pmu);
+	
+	return toRet;
+}
+
+template<class T, GABasis M1, GABasis M2>
+constexpr GATuple<M1|M2, T> operator*( GATuple<M1, T> l, GA<M2, T> r)
+{
+	GATuple<M1|M2, T> toRet;
+	GAPostMultiplyUtil<T, M1|M2, M2, GA_InnerProduct> pmu(toRet, r);
+	GAMetaHelper<M1, M1, GAPostMultiplyUtil<T, M1|M2, M2, GA_InnerProduct>, T> gmh(l, pmu);
 	
 	return toRet;
 }
 
 
 //! Utility to pre-multiply by a GA...
-template<class T, GABasis MV, GABasis M2>
+template<class T, GABasis MV, GABasis M2, class OP>
 struct GAPreMultiplyUtil
 {
 	GAPreMultiplyUtil(GATuple<MV, T> &in_d, GA<M2, T> &lhs)
@@ -411,7 +468,7 @@ struct GAPreMultiplyUtil
 	template<GABasis X, class Y>
 	void action(GA<X, Y> &o)
 	{
-		_dest += (_lhs | o);
+		OP::action(_dest, _lhs, o);
 	}
 	
 private:
@@ -425,15 +482,35 @@ template<class T, GABasis M1, GABasis M2>
 constexpr GATuple<M1|M2, T> operator|( GA<M1, T> l, GATuple<M2, T> r)
 {
 	GATuple<M1|M2, T> toRet;
-	GAPreMultiplyUtil<T, M1|M2, M1> pmu(toRet, l);
-	GAMetaHelper<M2, M2, GAPreMultiplyUtil<T, M1|M2, M1>, T> gmh(r, pmu);
+	GAPreMultiplyUtil<T, M1|M2, M1, GA_GeometricProduct> pmu(toRet, l);
+	GAMetaHelper<M2, M2, GAPreMultiplyUtil<T, M1|M2, M1, GA_GeometricProduct>, T> gmh(r, pmu);
+	
+	return toRet;
+}
+
+template<class T, GABasis M1, GABasis M2>
+constexpr GATuple<M1|M2, T> operator^( GA<M1, T> l, GATuple<M2, T> r)
+{
+	GATuple<M1|M2, T> toRet;
+	GAPreMultiplyUtil<T, M1|M2, M1, GA_OuterProduct> pmu(toRet, l);
+	GAMetaHelper<M2, M2, GAPreMultiplyUtil<T, M1|M2, M1, GA_OuterProduct>, T> gmh(r, pmu);
+	
+	return toRet;
+}
+
+template<class T, GABasis M1, GABasis M2>
+constexpr GATuple<M1|M2, T> operator*( GA<M1, T> l, GATuple<M2, T> r)
+{
+	GATuple<M1|M2, T> toRet;
+	GAPreMultiplyUtil<T, M1|M2, M1, GA_InnerProduct> pmu(toRet, l);
+	GAMetaHelper<M2, M2, GAPreMultiplyUtil<T, M1|M2, M1, GA_InnerProduct>, T> gmh(r, pmu);
 	
 	return toRet;
 }
 
 
 //! Utility to multiply tuples
-template<class T, GABasis MV, GABasis M2>
+template<class T, GABasis MV, GABasis M2, class OP>
 struct GATupleMultiplyUtil
 {
 	GATupleMultiplyUtil(GATuple<MV, T> &in_d, GATuple<M2, T> &rhs)
@@ -444,7 +521,7 @@ struct GATupleMultiplyUtil
 	template<GABasis X, class Y>
 	void action(GA<X, Y> &o)
 	{
-		_dest += (o | _rhs);
+		OP::action(_dest, o, _rhs);
 	}
 	
 private:
@@ -458,8 +535,28 @@ template<class T, GABasis M1, GABasis M2>
 constexpr GATuple<M1|M2, T> operator|( GATuple<M1, T> l, GATuple<M2, T> r)
 {
 	GATuple<M1|M2, T> toRet;
-	GATupleMultiplyUtil<T, M1|M2, M2> pmu(toRet, r);
-	GAMetaHelper<M1, M1, GATupleMultiplyUtil<T, M1|M2, M2>, T> gmh(l, pmu);
+	GATupleMultiplyUtil<T, M1|M2, M2, GA_GeometricProduct> pmu(toRet, r);
+	GAMetaHelper<M1, M1, GATupleMultiplyUtil<T, M1|M2, M2, GA_GeometricProduct>, T> gmh(l, pmu);
+	
+	return toRet;
+}
+
+template<class T, GABasis M1, GABasis M2>
+constexpr GATuple<M1|M2, T> operator^( GATuple<M1, T> l, GATuple<M2, T> r)
+{
+	GATuple<M1|M2, T> toRet;
+	GATupleMultiplyUtil<T, M1|M2, M2, GA_OuterProduct> pmu(toRet, r);
+	GAMetaHelper<M1, M1, GATupleMultiplyUtil<T, M1|M2, M2, GA_OuterProduct>, T> gmh(l, pmu);
+	
+	return toRet;
+}
+
+template<class T, GABasis M1, GABasis M2>
+constexpr GATuple<M1|M2, T> operator*( GATuple<M1, T> l, GATuple<M2, T> r)
+{
+	GATuple<M1|M2, T> toRet;
+	GATupleMultiplyUtil<T, M1|M2, M2, GA_InnerProduct> pmu(toRet, r);
+	GAMetaHelper<M1, M1, GATupleMultiplyUtil<T, M1|M2, M2, GA_InnerProduct>, T> gmh(l, pmu);
 	
 	return toRet;
 }
