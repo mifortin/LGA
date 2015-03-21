@@ -80,7 +80,7 @@ struct GA_OuterProduct
 	@warning	Only meant to be used at compile time
 	@param		t a constant that tells of the type.
  */
-constexpr int GAGrade(GABasis t)
+constexpr int GAGrade(const GABasis t)
 {
 	int o = 0;
 	unsigned int it = (unsigned int)t;
@@ -97,7 +97,7 @@ constexpr int GAGrade(GABasis t)
 //! Combines multiple basis by multiplying left to right.
 /*!	Consider e1^e2 and e2^e3, the combination is e1^e3 since the e2s cancel out.
  */
-constexpr GABasis operator^(GABasis left, GABasis right)
+constexpr GABasis operator^(const GABasis left, const GABasis right)
 {
 	return GABasis((unsigned int)left^(unsigned int)right);
 }
@@ -106,7 +106,7 @@ constexpr GABasis operator^(GABasis left, GABasis right)
 /*!	Rather than the minimal combination, what is the largest combination.
 	In other words, find the most logical psedo-vector of the left and right.
  */
-constexpr GABasis operator|(GABasis left, GABasis right)
+constexpr GABasis operator|(const GABasis left, const GABasis right)
 {
 	return GABasis((unsigned int)left|(unsigned int)right);
 }
@@ -127,10 +127,10 @@ static_assert(GAGrade(e2^e4^e6) == 3, "GAGrade: Order(e2^e4^e6) = 3");
 	see how many elements have to be shifted to sort the e1, e2, e3...
 	elements.
  */
-constexpr int GAProductMultiplyBy(GABasis left, GABasis right)
+constexpr int GAProductMultiplyBy(const GABasis left, const GABasis right)
 {
-	unsigned int uil = (unsigned int)left;
-	unsigned int uir = (unsigned int)right;
+	const unsigned int uil = (unsigned int)left;
+	const unsigned int uir = (unsigned int)right;
 	
 	// Find the last bit in uil
 	int lastBit = 9;
@@ -181,7 +181,7 @@ public:
 	GA<MV, T>&operator=(T in_) { t = in_; return *this; }
 	
 	//! Cast operator
-	operator T() { return t; }
+	operator T() const { return t; }
 	
 	T &operator()() { return t; }
 	
