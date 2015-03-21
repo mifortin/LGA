@@ -22,7 +22,27 @@ std::ostream &operator<<(std::ostream &ostr, GABasis t)
 	{
 		if (t & (1 << x))
 		{
-			ostr << " e" << (x+1);
+			switch(x+1)
+			{
+				case 1:
+					ostr << "x";
+					break;
+					
+				case 2:
+					ostr << "y";
+					break;
+					
+				case 3:
+					ostr << "z";
+					break;
+					
+				case 4:
+					ostr << "w";
+					break;
+					
+				default:
+					ostr << "e" << (x+1);
+			}
 		}
 	}
 	

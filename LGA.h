@@ -9,3 +9,4 @@
 #include "LMultivector_Dual.h"
 #include "LMultivector_Literals.h"
 #include "LMultivector_ostream.h"
+#include "LMultivector_Plucker.h"

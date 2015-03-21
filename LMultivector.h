@@ -156,7 +156,9 @@ constexpr int GAProductMultiplyBy(const GABasis left, const GABasis right)
 }
 
 static_assert(GAProductMultiplyBy(e1, e2) == 1, "GAProductMultiplyBy: In order, simple");
+static_assert(GAProductMultiplyBy(e1, e4) == 1, "GAProductMultiplyBy: In order, simple");
 static_assert(GAProductMultiplyBy(e2, e1) == -1, "GAProductMultiplyBy: Reverse order, simple");
+static_assert(GAProductMultiplyBy(e4, e1) == -1, "GAProductMultiplyBy: In order, simple");
 static_assert(GAProductMultiplyBy(e2, e1^e3) == -1, "GAProductMultiplyBy: Middle, with negation");
 
 
@@ -192,6 +194,14 @@ public:
 protected:
 	T t;	//!< The type, multiplier in front of the basis.
 };
+
+
+//! Return the negative of a GA...
+template<GABasis MV, class T>
+GA<MV, T> operator-(const GA<MV, T> left_)
+{
+	return GA<MV,T>(- T(left_));
+}
 
 
 //! Utility object to force the compiler to evaluate something.
@@ -241,7 +251,7 @@ constexpr GA<M1^M2, T> operator^ (GA<M1, T> l, GA<M2, T> r)
 {
 	CompilerEval<GAGrade(M1^M2) == GAGrade(M1) + GAGrade(M2) ? 1:0> sign;
 
-	GA<M1^M2, T> result = l() * r() * (T)sign.result();
+	GA<M1^M2, T> result = (l | r) * (T)sign.result();
 	
 	return result;
 }
@@ -253,7 +263,7 @@ constexpr GA<M1^M2, T> operator* (GA<M1, T> l, GA<M2, T> r)
 {
 	CompilerEval<GAGrade(M1^M2) == GAGrade(M2) - GAGrade(M1) ? 1:0> sign;
 	
-	GA<M1^M2, T> result = l() * r() * (T)sign.result();
+	GA<M1^M2, T> result = (l | r) * (T)sign.result();
 	
 	return result;
 }

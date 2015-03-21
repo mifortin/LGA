@@ -28,3 +28,21 @@ GATuple<MV, T> Dual(GATuple<MV, T> in_)
 	
 	return in_ * inverse;
 }
+
+
+/*! @brief	Computes the cross product
+	
+	@param		left_	Left-hand side parameter for the cross product
+	@param		right_	Right-hand side paramter for the cross product
+ 
+	@return				The cross product
+ 
+	@warning	We define cross product in terms of the geometric product.
+ */
+template<GABasis MV, class T>
+GATuple<MV, T> Cross(const GATuple<MV,T> left_, const GATuple<MV,T> right_)
+{
+	GA<MV, T> psuedoscalar(1);
+	
+	return - psuedoscalar | (left_ ^ right_);
+}
